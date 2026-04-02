@@ -1,45 +1,45 @@
-<!DOCTYPE html>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-<html>
-<head>
-  <title>Event Entry Check</title>
-</head>
-<body style="text-align:center; font-family:sans-serif;">
+const firebaseConfig = {
+  apiKey: "PASTE_HERE",
+  authDomain: "PASTE_HERE",
+  projectId: "PASTE_HERE",
+};
 
-<h2>Event Entry Check</h2>
-<h3 id="result">Checking...</h3>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-<script>
-  const database = {
-    "xyz123": {name: "T. Sai Vaibhavi", roll: "23BK1A0562"},
-    "ID002": {name: "Sneha", roll: "22bk1a0501"},
-    "ID003": {name: "Arjun", roll: "103"}
-  };
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
 
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
+const result = document.getElementById("result");
 
-  let used = JSON.parse(localStorage.getItem("used")) || {};
+if (!id) {
+  result.innerHTML = "❌ Invalid QR";
+} else {
+  const ref = doc(db, "students", id);
+  const snap = await getDoc(ref);
 
-  if (!id || !database[id]) {
-    document.getElementById("result").innerHTML = "❌ Invalid QR";
-    document.body.style.backgroundColor = "lightcoral";
+  if (!snap.exists()) {
+    result.innerHTML = "❌ Not Allowed";
+    document.body.style.background = "lightcoral";
+  } else {
+    const user = snap.data();
+
+    if (user.dept !== "CSE") {
+      result.innerHTML = "❌ Not Your Department";
+      document.body.style.background = "lightcoral";
+    } else {
+      result.innerHTML = `
+        <h2>✅ Allowed</h2>
+        <img src="${user.photo}" width="120"><br><br>
+        Name: ${user.name}<br>
+        Roll: ${user.roll}
+      `;
+      document.body.style.background = "lightgreen";
+    }
   }
-  else if (used[id]) {
-    document.getElementById("result").innerHTML = "⚠️ Already Used";
-    document.body.style.backgroundColor = "orange";
-  }
-  else {
-    used[id] = true;
-    localStorage.setItem("used", JSON.stringify(used));
-
-    let user = database[id];
-
-    document.getElementById("result").innerHTML =
-      `✅ Allowed <br> Name: ${user.name} <br> Roll: ${user.roll}`;
-    document.body.style.backgroundColor = "lightgreen";
-  }
+}
 </script>
-
-</body>
-</html>
