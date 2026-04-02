@@ -1,49 +1,62 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Event Entry</title>
+</head>
+
+<body style="text-align:center; font-family:sans-serif;">
+
+<h2>Event Entry Check</h2>
+<div id="result">Loading...</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
- const firebaseConfig = {
-    apiKey: "AIzaSyDFMvn_a8eDJSII4PNCoYjHRMElD8mJE-8",
-    authDomain: "event-entry-bc734.firebaseapp.com",
-    projectId: "event-entry-bc734",
-    storageBucket: "event-entry-bc734.firebasestorage.app",
-    messagingSenderId: "618259843171",
-    appId: "1:618259843171:web:910706e950b36107765056",
-    measurementId: "G-N33HX7R44H"
-  };
+// 🔴 PASTE YOUR FIREBASE CONFIG HERE
+const firebaseConfig = {
+  apiKey: "AIzaSyDFMvn_a8eDJSII4PNCoYjHRMElD8mJE-8",
+  authDomain: "event-entry-bc734.firebaseapp.com",
+  projectId: "event-entry-bc734",
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const result = document.getElementById("result");
+
+// 🔍 GET ID FROM URL
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
-const result = document.getElementById("result");
-
 if (!id) {
-  result.innerHTML = "❌ Invalid QR";
+  result.innerHTML = "❌ No ID found in URL";
 } else {
   const ref = doc(db, "students", id);
-  const snap = await getDoc(ref);
 
-  if (!snap.exists()) {
-    result.innerHTML = "❌ Not Allowed";
-    document.body.style.background = "lightcoral";
-  } else {
-    const user = snap.data();
-
-    if (user.dept !== "CSE") {
-      result.innerHTML = "❌ Not Your Department";
-      document.body.style.background = "lightcoral";
+  getDoc(ref).then((snap) => {
+    if (!snap.exists()) {
+      result.innerHTML = "❌ Not Allowed";
     } else {
-      result.innerHTML = `
-        <h2>✅ Allowed</h2>
-        <img src="${user.photo}" width="120"><br><br>
-        Name: ${user.name}<br>
-        Roll: ${user.roll}
-      `;
-      document.body.style.background = "lightgreen";
+      const user = snap.data();
+
+      if (user.dept !== "CSE") {
+        result.innerHTML = "❌ Not Your Department";
+      } else {
+        result.innerHTML = `
+          <h2>✅ Allowed</h2>
+          <img src="${user.photo}" width="120"><br><br>
+          Name: ${user.name}<br>
+          Roll: ${user.roll}
+        `;
+      }
     }
-  }
+  }).catch((error) => {
+    result.innerHTML = "⚠️ Error: " + error.message;
+  });
 }
 </script>
+
+</body>
+</html>
