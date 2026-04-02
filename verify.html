@@ -3,19 +3,73 @@
 <html>
 <head>
   <title>Event Entry</title>
-  <script type="module"></script>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      font-family: Arial, sans-serif;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 280px;
+    }
+
+    .card img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #4facfe;
+    }
+
+    .name {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .roll {
+      color: gray;
+      margin-bottom: 15px;
+    }
+
+    .status {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .allowed {
+      color: green;
+    }
+
+    .denied {
+      color: red;
+    }
+  </style>
+
 </head>
 
-<body style="text-align:center; font-family:sans-serif;">
+<body>
 
-<h2>Event Entry Check</h2>
-<div id="result">Loading...</div>
+<div class="card" id="result">
+  Loading...
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔴 PASTE YOUR FIREBASE CONFIG HERE
 const firebaseConfig = {
   apiKey: "AIzaSyDFMvn_a8eDJSII4PNCoYjHRMElD8mJE-8",
   authDomain: "event-entry-bc734.firebaseapp.com",
@@ -27,36 +81,33 @@ const db = getFirestore(app);
 
 const result = document.getElementById("result");
 
-// 🔍 GET ID FROM URL
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 if (!id) {
-  result.innerHTML = "❌ No ID found in URL";
+  result.innerHTML = `<div class="status denied">❌ Invalid QR</div>`;
 } else {
   const ref = doc(db, "students", id);
 
   getDoc(ref).then((snap) => {
     if (!snap.exists()) {
-      result.innerHTML = "❌ Not Allowed";
+      result.innerHTML = `<div class="status denied">❌ Not Allowed</div>`;
     } else {
       const user = snap.data();
 
-      console.log(user.photo);
-      
       if (user.dept !== "CSE") {
-        result.innerHTML = "❌ Not Your Department";
+        result.innerHTML = `<div class="status denied">❌ Not Your Department</div>`;
       } else {
         result.innerHTML = `
-          <h2>✅ Allowed</h2>
+          <div class="status allowed">✅ Entry Allowed</div>
           <img src="${user.photo}">
-          Name: ${user.Name}<br>
-          Roll: ${user.roll}
+          <div class="name">${user.name}</div>
+          <div class="roll">Roll: ${user.roll}</div>
         `;
       }
     }
-  }).catch((error) => {
-    result.innerHTML = "⚠️ Error: " + error.message;
+  }).catch(() => {
+    result.innerHTML = `<div class="status denied">⚠️ Error loading data</div>`;
   });
 }
 </script>
